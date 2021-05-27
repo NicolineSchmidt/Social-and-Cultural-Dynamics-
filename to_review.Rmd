@@ -1,0 +1,84 @@
+---
+title: "to_review"
+author: "Morten Gade"
+date: "25/5/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+
+pacman::p_load(tidyverse, 
+               ggplot2)
+
+# illustrating varying pervasiveness
+
+to_review0.3 <- data.frame("pervasiveness_x" = seq(0, 100, by = 10), "o_similarity" = rep(0.3, 11), "hom_deg" = rep(1, 11), "trait_similarity" = rep(1, 11), "similarity" = ifelse(to_review0.3$o_similarity < 0.2, 2.2, ifelse(to_review0.3$o_similarity < 0.4,2, ifelse(to_review0.3$o_similarity < 0.6, 1.6, ifelse(to_review0.3$o_similarity < 0.8, 1.2, 1)))) * to_review0.3$hom_deg, "roll_number" = 1000)
+
+to_review0.3$score <- (to_review0.3$pervasiveness_x * to_review0.3$similarity)/(to_review0.3$trait_similarity/3)
+to_review0.3$percent_chance <- to_review0.3$score/to_review0.3$roll_number*100
+
+
+to_review0.5 <- data.frame("pervasiveness_x" = seq(0, 100, by = 10), "o_similarity" = rep(0.5, 11), "hom_deg" = rep(1, 11), "trait_similarity" = rep(1, 11), "similarity" = ifelse(to_review0.5$o_similarity < 0.2, 2.2, ifelse(to_review0.5$o_similarity < 0.4,2, ifelse(to_review0.5$o_similarity < 0.6, 1.6, ifelse(to_review0.5$o_similarity < 0.8, 1.2, 1)))) * to_review0.5$hom_deg, "roll_number" = 1000)
+
+to_review0.5$score <- (to_review0.5$pervasiveness_x * to_review0.5$similarity)/(to_review0.5$trait_similarity/3)
+to_review0.5$percent_chance <- to_review0.5$score/to_review0.5$roll_number*100
+
+
+to_review0.7 <- data.frame("pervasiveness_x" = seq(0, 100, by = 10), "o_similarity" = rep(0.7, 11), "hom_deg" = rep(1, 11), "trait_similarity" = rep(1, 11), "similarity" = ifelse(to_review0.7$o_similarity < 0.2, 2.2, ifelse(to_review0.7$o_similarity < 0.4,2, ifelse(to_review0.7$o_similarity < 0.6, 1.6, ifelse(to_review0.7$o_similarity < 0.8, 1.2, 1)))) * to_review0.7$hom_deg, "roll_number" = 1000)
+
+to_review0.7$score <- (to_review0.7$pervasiveness_x * to_review0.7$similarity)/(to_review0.7$trait_similarity/3)
+to_review0.7$percent_chance <- to_review0.7$score/to_review0.7$roll_number*100
+
+# plotting
+
+to_review_similarity <- rbind(to_review0.3, to_review0.5, to_review0.7)
+to_review_similarity$o_similarity <- as.factor(to_review_similarity$o_similarity)
+
+h_gg <- ggplot(to_review_similarity, aes(x = pervasiveness_x, y = percent_chance, color = o_similarity)) + 
+  geom_line() + 
+  theme_classic() +
+  ylab("Probability") +
+  xlab("Pervasiveness") +
+  labs(color='Homophily Score')
+
+# illustrating varying similarity
+
+to_review20 <- data.frame("pervasiveness_x" = rep(20, 11), "o_similarity" = seq(0, 1, by = 0.1), "hom_deg" = rep(1, 11), "trait_similarity" = rep(1, 11), "similarity" = ifelse(to_review20$o_similarity < 0.2, 2.2, ifelse(to_review20$o_similarity < 0.4,2, ifelse(to_review20$o_similarity < 0.6, 1.6, ifelse(to_review20$o_similarity < 0.8, 1.2, 1)))) * to_review20$hom_deg, "roll_number" = 1000)
+
+to_review20$score <- (to_review20$pervasiveness_x * to_review20$similarity)/(to_review20$trait_similarity/3)
+to_review20$percent_chance <- to_review20$score/to_review20$roll_number*100
+
+to_review40 <- data.frame("pervasiveness_x" = rep(40, 11), "o_similarity" = seq(0, 1, by = 0.1), "hom_deg" = rep(1, 11), "trait_similarity" = rep(1, 11), "similarity" = ifelse(to_review40$o_similarity < 0.2, 2.2, ifelse(to_review40$o_similarity < 0.4,2, ifelse(to_review40$o_similarity < 0.6, 1.6, ifelse(to_review40$o_similarity < 0.8, 1.2, 1)))) * to_review40$hom_deg, "roll_number" = 1000)
+
+to_review40$score <- (to_review40$pervasiveness_x * to_review40$similarity)/(to_review40$trait_similarity/3)
+to_review40$percent_chance <-  to_review40$score/to_review40$roll_number*100
+
+to_review60 <- data.frame("pervasiveness_x" = rep(60, 11), "o_similarity" = seq(0, 1, by = 0.1), "hom_deg" = rep(1, 11), "trait_similarity" = rep(1, 11), "similarity" = ifelse(to_review60$o_similarity < 0.2, 2.2, ifelse(to_review60$o_similarity < 0.4,2, ifelse(to_review60$o_similarity < 0.6, 1.6, ifelse(to_review60$o_similarity < 0.8, 1.2, 1)))) * to_review60$hom_deg, "roll_number" = 1000)
+
+to_review60$score <- (to_review60$pervasiveness_x * to_review60$similarity)/(to_review60$trait_similarity/3)
+to_review60$percent_chance <-  to_review60$score/to_review60$roll_number*100
+
+to_review_pervasiveness <- rbind(to_review20, to_review40, to_review60)
+to_review_pervasiveness$pervasiveness_x <- as.factor(to_review_pervasiveness$pervasiveness_x)
+
+p_gg <- ggplot(to_review_pervasiveness, aes(x = o_similarity, y = percent_chance, color = pervasiveness_x)) + 
+  geom_line() + 
+  theme_classic() +
+  ylab("Probability") +
+  xlab("Homophily Score") +
+  labs(color='Pervasiveness')
+
+h_gg
+p_gg
+
+```

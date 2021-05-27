@@ -1,0 +1,599 @@
+---
+title: "0-trans"
+author: "Morten Gade"
+date: "19/5/2021"
+output: html_document
+---
+
+```{r cars}
+
+# load packages
+pacman::p_load(tidyverse,
+               here,
+               network,
+               igraph,
+               ggraph,
+               tidygraph,
+               patchwork,
+               ggplot2,
+               leiden)
+
+# make some functions
+
+igraph_function <- function(df) {
+  
+  ID = data.frame(ID=unique(c(df$from, df$to)))
+  
+  igraph <-graph_from_data_frame(d = df,
+                        vertices = ID,
+                        directed = TRUE)
+  
+  return(igraph)
+  
+}
+
+network_function <- function(graph) {
+  name = deparse(substitute(graph))
+  avg_degree = mean(igraph::degree(graph, mode = "in"))
+  q1 = quantile(igraph::degree(graph, mode = "in"))[2]
+  q2 = quantile(igraph::degree(graph, mode = "in"))[3]
+  q3 = quantile(igraph::degree(graph, mode = "in"))[4]
+  apl = mean_distance(graph, directed = TRUE, unconnected = TRUE)
+  transitivity = transitivity(graph, type = "average")
+  reciprocity = reciprocity(graph, ignore.loops = TRUE, mode = "default")
+  
+  return(data.frame(avg_degree, q1, q2, q3, apl, transitivity, reciprocity, name))
+  
+}
+
+```
+
+
+```{r pressure, echo=FALSE}
+
+# testing effect of increasing follow-transparency
+
+# load data
+
+like1follow0v1 <- read.csv("~/sockult_exam/follow_transparency/like1follow0v1.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like1follow0v2 <- read.csv("~/sockult_exam/follow_transparency/like1follow0v2.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like1follow0.1v1 <- read.csv("~/sockult_exam/follow_transparency/like1follow0.1v1.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like1follow0.1v2 <- read.csv("~/sockult_exam/follow_transparency/like1follow0.1v2.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like1follow0.2v1 <- read.csv("~/sockult_exam/follow_transparency/like1follow0.2v1.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like1follow0.2v2 <- read.csv("~/sockult_exam/follow_transparency/like1follow0.2v2.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like1follow0.3v1 <- read.csv("~/sockult_exam/follow_transparency/like1follow0.3v1.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like1follow0.3v2 <- read.csv("~/sockult_exam/follow_transparency/like1follow0.3v2.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like1follow0.4v1 <- read.csv("~/sockult_exam/follow_transparency/like1follow0.4v1.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like1follow0.4v2 <- read.csv("~/sockult_exam/follow_transparency/like1follow0.4v2.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like1follow0.5v1 <- read.csv("~/sockult_exam/follow_transparency/like1follow0.5v1.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like1follow0.5v2 <- read.csv("~/sockult_exam/follow_transparency/like1follow0.5v2.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like1follow0.6v1 <- read.csv("~/sockult_exam/follow_transparency/like1follow0.6v1.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like1follow0.6v2 <- read.csv("~/sockult_exam/follow_transparency/like1follow0.6v2.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like1follow0.7v1 <- read.csv("~/sockult_exam/follow_transparency/like1follow0.7v1.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like1follow0.7v2 <- read.csv("~/sockult_exam/follow_transparency/like1follow0.7v2.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like1follow0.8v1 <- read.csv("~/sockult_exam/follow_transparency/like1follow0.8v1.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like1follow0.8v2 <- read.csv("~/sockult_exam/follow_transparency/like1follow0.8v2.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like1follow0.9v1 <- read.csv("~/sockult_exam/follow_transparency/like1follow0.9v1.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like1follow0.9v2 <- read.csv("~/sockult_exam/follow_transparency/like1follow0.9v2.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like1follow1v1 <- read.csv("~/sockult_exam/follow_transparency/like1follow1v1.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like1follow1v2 <- read.csv("~/sockult_exam/follow_transparency/like1follow1v2.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+# making graphs
+like1follow0.0v1_graph <- igraph_function(like1follow0v1)
+like1follow0.0v2_graph <- igraph_function(like1follow0v2)
+like1follow0.1v1_graph <- igraph_function(like1follow0.1v1)
+like1follow0.1v2_graph <- igraph_function(like1follow0.1v2)
+like1follow0.2v1_graph <- igraph_function(like1follow0.2v1)
+like1follow0.2v2_graph <- igraph_function(like1follow0.2v2)
+like1follow0.3v1_graph <- igraph_function(like1follow0.3v1)
+like1follow0.3v2_graph <- igraph_function(like1follow0.3v2)
+like1follow0.4v1_graph <- igraph_function(like1follow0.4v1)
+like1follow0.4v2_graph <- igraph_function(like1follow0.4v2)
+like1follow0.5v1_graph <- igraph_function(like1follow0.5v1)
+like1follow0.5v2_graph <- igraph_function(like1follow0.5v2)
+like1follow0.6v1_graph <- igraph_function(like1follow0.6v1)
+like1follow0.6v2_graph <- igraph_function(like1follow0.6v2)
+like1follow0.7v1_graph <- igraph_function(like1follow0.7v1)
+like1follow0.7v2_graph <- igraph_function(like1follow0.7v2)
+like1follow0.8v1_graph <- igraph_function(like1follow0.8v1)
+like1follow0.8v2_graph <- igraph_function(like1follow0.8v2)
+like1follow0.9v1_graph <- igraph_function(like1follow0.9v1)
+like1follow0.9v2_graph <- igraph_function(like1follow0.9v2)
+like1follow1.0v1_graph <- igraph_function(like1follow1v1)
+like1follow1.0v2_graph <- igraph_function(like1follow1v2)
+
+# finding network properties
+like1follow0.0v1_stats <- network_function(like1follow0.0v1_graph)
+like1follow0.0v2_stats <- network_function(like1follow0.0v2_graph)
+like1follow0.1v1_stats <- network_function(like1follow0.1v1_graph)
+like1follow0.1v2_stats <- network_function(like1follow0.1v2_graph)
+like1follow0.2v1_stats <- network_function(like1follow0.2v1_graph)
+like1follow0.2v2_stats <- network_function(like1follow0.2v2_graph)
+like1follow0.3v1_stats <- network_function(like1follow0.3v1_graph)
+like1follow0.3v2_stats <- network_function(like1follow0.3v2_graph)
+like1follow0.4v1_stats <- network_function(like1follow0.4v1_graph)
+like1follow0.4v2_stats <- network_function(like1follow0.4v2_graph)
+like1follow0.5v1_stats <- network_function(like1follow0.5v1_graph)
+like1follow0.5v2_stats <- network_function(like1follow0.5v2_graph)
+like1follow0.6v1_stats <- network_function(like1follow0.6v1_graph)
+like1follow0.6v2_stats <- network_function(like1follow0.6v2_graph)
+like1follow0.7v1_stats <- network_function(like1follow0.7v1_graph)
+like1follow0.7v2_stats <- network_function(like1follow0.7v2_graph)
+like1follow0.8v1_stats <- network_function(like1follow0.8v1_graph)
+like1follow0.8v2_stats <- network_function(like1follow0.8v2_graph)
+like1follow0.9v1_stats <- network_function(like1follow0.9v1_graph)
+like1follow0.9v2_stats <- network_function(like1follow0.9v2_graph)
+like1follow1.0v1_stats <- network_function(like1follow1.0v1_graph)
+like1follow1.0v2_stats <- network_function(like1follow1.0v2_graph)
+
+# create big df
+
+networks_follow <- rbind(
+  like1follow0.0v1_stats, 
+  like1follow0.0v2_stats, 
+  like1follow0.1v1_stats, 
+  like1follow0.1v2_stats,
+  like1follow0.2v1_stats, 
+  like1follow0.2v2_stats,
+  like1follow0.3v1_stats, 
+  like1follow0.3v2_stats,
+  like1follow0.4v1_stats, 
+  like1follow0.4v2_stats,
+  like1follow0.5v1_stats, 
+  like1follow0.5v2_stats,
+  like1follow0.6v1_stats, 
+  like1follow0.6v2_stats,
+  like1follow0.7v1_stats, 
+  like1follow0.7v2_stats,
+  like1follow0.8v1_stats, 
+  like1follow0.8v2_stats,
+  like1follow0.9v1_stats, 
+  like1follow0.9v2_stats,
+  like1follow1.0v1_stats, 
+  like1follow1.0v2_stats
+  )
+
+
+networks_follow$follow_value <- str_extract(networks_follow$name, "[:digit:]\\.[:digit:]")
+
+```
+
+```{r}
+
+# testing effect of increasing like-transparency
+
+# load data
+
+like0follow1v1 <- read.csv("~/sockult_exam/like_transparency/like0follow1v1.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like0follow1v2 <- read.csv("~/sockult_exam/like_transparency/like0follow1v2.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like0.1follow1v1 <- read.csv("~/sockult_exam/like_transparency/like0.1follow1v1.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like0.1follow1v2 <- read.csv("~/sockult_exam/like_transparency/like0.1follow1v2.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like0.2follow1v1 <- read.csv("~/sockult_exam/like_transparency/like0.2follow1v1.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like0.2follow1v2 <- read.csv("~/sockult_exam/like_transparency/like0.2follow1v2.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like0.3follow1v1 <- read.csv("~/sockult_exam/like_transparency/like0.3follow1v1.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like0.3follow1v2 <- read.csv("~/sockult_exam/like_transparency/like0.3follow1v2.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like0.4follow1v1 <- read.csv("~/sockult_exam/like_transparency/like0.4follow1v1.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like0.4follow1v2 <- read.csv("~/sockult_exam/like_transparency/like0.4follow1v2.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like0.5follow1v1 <- read.csv("~/sockult_exam/like_transparency/like0.5follow1v1.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like0.5follow1v2 <- read.csv("~/sockult_exam/like_transparency/like0.5follow1v2.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like0.6follow1v1 <- read.csv("~/sockult_exam/like_transparency/like0.6follow1v1.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like0.6follow1v2 <- read.csv("~/sockult_exam/like_transparency/like0.6follow1v2.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like0.7follow1v1 <- read.csv("~/sockult_exam/like_transparency/like0.7follow1v1.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like0.7follow1v2 <- read.csv("~/sockult_exam/like_transparency/like0.7follow1v2.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like0.8follow1v1 <- read.csv("~/sockult_exam/like_transparency/like0.8follow1v1.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like0.8follow1v2 <- read.csv("~/sockult_exam/like_transparency/like0.8follow1v2.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like0.9follow1v1 <- read.csv("~/sockult_exam/like_transparency/like0.9follow1v1.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like0.9follow1v2 <- read.csv("~/sockult_exam/like_transparency/like0.9follow1v2.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like1follow1v1 <- read.csv("~/sockult_exam/follow_transparency/like1follow1v1.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+like1follow1v2 <- read.csv("~/sockult_exam/follow_transparency/like1follow1v2.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+# making graphs
+like0.0follow1v1_graph <- igraph_function(like0follow1v1)
+like0.0follow1v2_graph <- igraph_function(like0follow1v2)
+like0.1follow1v1_graph <- igraph_function(like0.1follow1v1)
+like0.1follow1v2_graph <- igraph_function(like0.1follow1v2)
+like0.2follow1v1_graph <- igraph_function(like0.2follow1v1)
+like0.2follow1v2_graph <- igraph_function(like0.2follow1v2)
+like0.3follow1v1_graph <- igraph_function(like0.3follow1v1)
+like0.3follow1v2_graph <- igraph_function(like0.3follow1v2)
+like0.4follow1v1_graph <- igraph_function(like0.4follow1v1)
+like0.4follow1v2_graph <- igraph_function(like0.4follow1v2)
+like0.5follow1v1_graph <- igraph_function(like0.5follow1v1)
+like0.5follow1v2_graph <- igraph_function(like0.5follow1v2)
+like0.6follow1v1_graph <- igraph_function(like0.6follow1v1)
+like0.6follow1v2_graph <- igraph_function(like0.6follow1v2)
+like0.7follow1v1_graph <- igraph_function(like0.7follow1v1)
+like0.7follow1v2_graph <- igraph_function(like0.7follow1v2)
+like0.8follow1v1_graph <- igraph_function(like0.8follow1v1)
+like0.8follow1v2_graph <- igraph_function(like0.8follow1v2)
+like0.9follow1v1_graph <- igraph_function(like0.9follow1v1)
+like0.9follow1v2_graph <- igraph_function(like0.9follow1v2)
+like1.0follow1v1_graph <- igraph_function(like1follow1v1)
+like1.0follow1v2_graph <- igraph_function(like1follow1v2)
+
+# finding network properties
+
+like0.0follow1v1_stats <- network_function(like0.0follow1v1_graph)
+like0.0follow1v2_stats <- network_function(like0.0follow1v2_graph)
+like0.1follow1v1_stats <- network_function(like0.1follow1v1_graph)
+like0.1follow1v2_stats <- network_function(like0.1follow1v2_graph)
+like0.2follow1v1_stats <- network_function(like0.2follow1v1_graph)
+like0.2follow1v2_stats <- network_function(like0.2follow1v2_graph)
+like0.3follow1v1_stats <- network_function(like0.3follow1v1_graph)
+like0.3follow1v2_stats <- network_function(like0.3follow1v2_graph)
+like0.4follow1v1_stats <- network_function(like0.4follow1v1_graph)
+like0.4follow1v2_stats <- network_function(like0.4follow1v2_graph)
+like0.5follow1v1_stats <- network_function(like0.5follow1v1_graph)
+like0.5follow1v2_stats <- network_function(like0.5follow1v2_graph)
+like0.6follow1v1_stats <- network_function(like0.6follow1v1_graph)
+like0.6follow1v2_stats <- network_function(like0.6follow1v2_graph)
+like0.7follow1v1_stats <- network_function(like0.7follow1v1_graph)
+like0.7follow1v2_stats <- network_function(like0.7follow1v2_graph)
+like0.8follow1v1_stats <- network_function(like0.8follow1v1_graph)
+like0.8follow1v2_stats <- network_function(like0.8follow1v2_graph)
+like0.9follow1v1_stats <- network_function(like0.9follow1v1_graph)
+like0.9follow1v2_stats <- network_function(like0.9follow1v2_graph)
+like1.0follow1v1_stats <- network_function(like1.0follow1v1_graph)
+like1.0follow1v2_stats <- network_function(like1.0follow1v2_graph)
+
+# create big df
+
+networks_like <- rbind(
+  like0.0follow1v1_stats,
+  like0.0follow1v2_stats,
+  like0.1follow1v1_stats, 
+  like0.1follow1v2_stats, 
+  like0.2follow1v1_stats, 
+  like0.2follow1v2_stats,
+  like0.3follow1v1_stats, 
+  like0.3follow1v2_stats,
+  like0.4follow1v1_stats, 
+  like0.4follow1v2_stats,
+  like0.5follow1v1_stats, 
+  like0.5follow1v2_stats,
+  like0.6follow1v1_stats, 
+  like0.6follow1v2_stats,
+  like0.7follow1v1_stats, 
+  like0.7follow1v2_stats,
+  like0.8follow1v1_stats, 
+  like0.8follow1v2_stats,
+  like0.9follow1v1_stats, 
+  like0.9follow1v2_stats,
+  like1.0follow1v1_stats, 
+  like1.0follow1v2_stats
+  )
+
+networks_like$like_value <- str_extract(networks_like$name, "[:digit:]\\.[:digit:]")
+
+```
+
+```{r}
+
+# creating df combining like-manipulation and follow-manipulation
+
+networks_follow$like_value <- rep(1.0, 22)
+networks_like$follow_value <- rep(1.0, 22)
+
+networks_all <- rbind(networks_follow, networks_like)
+
+is.num <- sapply(networks_all, is.numeric)
+networks_all[is.num] <- lapply(networks_all[is.num], round, 4)
+
+networks_all$name <- NULL
+
+write.csv(networks_all, file = "network_properties.csv", quote = FALSE, row.names = F)
+
+```
+
+
+```{r}
+
+# plotting transitivity
+
+ggplot(networks_follow, aes(x = follow_value, y = transitivity)) +
+  geom_point() +
+  geom_line() +
+  ylim(0.4, 0.6) +
+  ylab("Transitivity") +
+  xlab("Follow Transparency") +
+  theme_linedraw()
+
+ggplot(networks_like, aes(x = like_value, y = transitivity)) +
+  geom_point() +
+  geom_line() +
+  ylim(0.4, 0.6) +
+  ylab("Transitivity") +
+  xlab("Like Transparency") +
+  theme_linedraw()
+
+```
+
+```{r}
+
+# making simple regression models
+
+networks_follow$follow_value <- as.numeric(networks_follow$follow_value)
+
+trans_model <- lm(transitivity ~ follow_value, data = networks_follow)
+summary(trans_model)
+
+
+networks_like$like_value <- as.numeric(networks_like$like_value)
+
+trans_model_like <- lm(transitivity ~ like_value, data = networks_like)
+summary(trans_model_like)
+
+```
+
+
+```{r}
+
+# finding community sizes for varying follower transparency
+
+leiden_test <- leiden(as_adjacency_matrix(like1.0follow1v1_graph))
+
+leiden_community_sizes <- function(graph) {
+  
+  leiden = leiden(as_adjacency_matrix(graph))
+  
+  group_1 <- table(leiden)[1]/860
+  group_2 <- table(leiden)[2]/860
+  group_3 <- table(leiden)[3]/860
+  group_4 <- table(leiden)[4]/860
+  group_5 <- ifelse(is.na(table(leiden)[5]), 0, table(leiden)[5]/860)
+  group_6 <- ifelse(is.na(table(leiden)[6]), 0, table(leiden)[6]/860)
+  
+  return(data.frame(group_1, group_2, group_3, group_4, group_5, group_6))
+  
+}
+
+like1follow0.0v1_communities <- leiden_community_sizes(like1follow0.0v1_graph)
+like1follow0.1v1_communities <- leiden_community_sizes(like1follow0.1v1_graph)
+like1follow0.2v1_communities <- leiden_community_sizes(like1follow0.2v1_graph)
+like1follow0.3v1_communities <- leiden_community_sizes(like1follow0.3v1_graph)
+like1follow0.4v1_communities <- leiden_community_sizes(like1follow0.4v1_graph)
+like1follow0.5v1_communities <- leiden_community_sizes(like1follow0.5v1_graph)
+like1follow0.6v1_communities <- leiden_community_sizes(like1follow0.6v1_graph)
+like1follow0.7v1_communities <- leiden_community_sizes(like1follow0.7v1_graph)
+like1follow0.8v1_communities <- leiden_community_sizes(like1follow0.8v1_graph)
+like1follow0.9v1_communities <- leiden_community_sizes(like1follow0.9v1_graph)
+like1follow1.0v1_communities <- leiden_community_sizes(like1follow1.0v1_graph)
+
+leiden_df <- rbind(like1follow0.0v1_communities, like1follow0.1v1_communities, like1follow0.2v1_communities, like1follow0.3v1_communities, like1follow0.4v1_communities, like1follow0.5v1_communities, like1follow0.6v1_communities, like1follow0.7v1_communities, like1follow0.8v1_communities, like1follow0.9v1_communities, like1follow1.0v1_communities)
+
+leiden_df$follow_value <- seq(0, 1, 0.1)
+
+leiden_df$group_4 <- ifelse(is.na(leiden_df$group_4), 0, leiden_df$group_4)
+
+ggplot(leiden_df) +
+  geom_line(aes(x = follow_value, y = group_1, color = "group_1")) +
+  geom_line(aes(x = follow_value, y = group_2, color = "group_2")) +
+  geom_line(aes(x = follow_value, y = group_3, color = "group_3")) +
+  geom_line(aes(x = follow_value, y = group_4, color = "group_4")) +
+  geom_line(aes(x = follow_value, y = group_5, color = "group_5")) +
+  theme_linedraw() +
+  ylab("Size %") +
+  xlab("Follow Transparency")
+  
+ggplot(leiden_df) +
+  geom_smooth(aes(x = follow_value, y = group_1, color = "group_1"), method = "lm", se = FALSE) +
+  geom_smooth(aes(x = follow_value, y = group_2, color = "group_2"), method = "lm", se = FALSE) +
+  geom_smooth(aes(x = follow_value, y = group_3, color = "group_3"), method = "lm", se = FALSE) +
+  geom_smooth(aes(x = follow_value, y = group_4, color = "group_4"), method = "lm", se = FALSE) +
+  theme_linedraw() +
+  ylab("Size %") +
+  xlab("Follow Transparency")
+
+```
+
+```{r}
+
+# finding community sizes for varying like transparency
+
+like0.0follow1v1_communities <- leiden_community_sizes(like0.0follow1v1_graph)
+like0.1follow1v1_communities <- leiden_community_sizes(like0.1follow1v1_graph)
+like0.2follow1v1_communities <- leiden_community_sizes(like0.2follow1v1_graph)
+like0.3follow1v1_communities <- leiden_community_sizes(like0.3follow1v1_graph)
+like0.4follow1v1_communities <- leiden_community_sizes(like0.4follow1v1_graph)
+like0.5follow1v1_communities <- leiden_community_sizes(like0.5follow1v1_graph)
+like0.6follow1v1_communities <- leiden_community_sizes(like0.6follow1v1_graph)
+like0.7follow1v1_communities <- leiden_community_sizes(like0.7follow1v1_graph)
+like0.8follow1v1_communities <- leiden_community_sizes(like0.8follow1v1_graph)
+like0.9follow1v1_communities <- leiden_community_sizes(like0.9follow1v1_graph)
+like1.0follow1v1_communities <- leiden_community_sizes(like1.0follow1v1_graph)
+
+leiden_df_likes <- rbind(like0.0follow1v1_communities, like0.1follow1v1_communities, like0.2follow1v1_communities, like0.3follow1v1_communities, like0.4follow1v1_communities, like0.5follow1v1_communities, like0.6follow1v1_communities, like0.7follow1v1_communities, like0.8follow1v1_communities, like0.9follow1v1_communities, like1.0follow1v1_communities)
+
+leiden_df_likes$like_value <- seq(0, 1, 0.1)
+
+leiden_df_likes$group_4 <- ifelse(is.na(leiden_df_likes$group_4), 0, leiden_df_likes$group_4)
+
+ggplot(leiden_df_likes) +
+  geom_line(aes(x = follow_value, y = group_1, color = "group_1")) +
+  geom_line(aes(x = follow_value, y = group_2, color = "group_2")) +
+  geom_line(aes(x = follow_value, y = group_3, color = "group_3")) +
+  geom_line(aes(x = follow_value, y = group_4, color = "group_4")) +
+  geom_line(aes(x = follow_value, y = group_5, color = "group_5")) +
+  theme_linedraw() +
+  ylab("Size %") +
+  xlab("Like Transparency")
+  
+ggplot(leiden_df_likes) +
+  geom_smooth(aes(x = like_value, y = group_1, color = "group_1"), method = "lm", se = FALSE) +
+  geom_smooth(aes(x = like_value, y = group_2, color = "group_2"), method = "lm", se = FALSE) +
+  geom_smooth(aes(x = like_value, y = group_3, color = "group_3"), method = "lm", se = FALSE) +
+  geom_smooth(aes(x = like_value, y = group_4, color = "group_4"), method = "lm", se = FALSE) +
+  theme_linedraw() +
+  ylab("Size %") +
+  xlab("Like Transparency")
+
+```
+
+
+```{r}
+
+# using configuration model to validate ABM
+
+degree_sequence_v1 <- data.frame("degrees_in" = degree(like1.0follow1v1_graph, mode = "in"), "degrees_out" = degree(like1.0follow1v1_graph, mode = "out"))
+
+degree_sequence_v2 <- data.frame("degrees_in" = degree(like1.0follow1v2_graph, mode = "in"), "degrees_out" = degree(like1.0follow1v2_graph, mode = "out"))
+
+degree_sequence <- rbind(degree_sequence_v1, degree_sequence_v2)
+
+deg_seq_game <- degree.sequence.game(out.deg = degree_sequence$degrees_out, in.deg = degree_sequence$degrees_in, method = "simple")
+
+seq_game_stats <- network_function(deg_seq_game)
+
+write_graph(deg_seq_game, "degree_sequence_game.graphml", format = "graphml")
+
+df1 <- degree.sequence.game(out.deg = degree_sequence_v1$degrees_out, in.deg = degree_sequence_v1$degrees_in, method = "simple")
+df1 <- network_function(df1)
+
+df2 <- degree.sequence.game(out.deg = degree_sequence_v1$degrees_out, in.deg = degree_sequence_v1$degrees_in, method = "simple")
+df2 <- network_function(df2)
+
+df3 <- degree.sequence.game(out.deg = degree_sequence_v1$degrees_out, in.deg = degree_sequence_v1$degrees_in, method = "simple")
+df3 <- network_function(df3)
+
+df4 <- degree.sequence.game(out.deg = degree_sequence_v1$degrees_out, in.deg = degree_sequence_v1$degrees_in, method = "simple")
+df4 <- network_function(df4)
+
+df5 <- degree.sequence.game(out.deg = degree_sequence_v1$degrees_out, in.deg = degree_sequence_v1$degrees_in, method = "simple")
+df5 <- network_function(df5)
+
+df6 <- degree.sequence.game(out.deg = degree_sequence_v1$degrees_out, in.deg = degree_sequence_v1$degrees_in, method = "simple")
+df6 <- network_function(df6)
+
+df7 <- degree.sequence.game(out.deg = degree_sequence_v1$degrees_out, in.deg = degree_sequence_v1$degrees_in, method = "simple")
+df7 <- network_function(df7)
+
+df8 <- degree.sequence.game(out.deg = degree_sequence_v1$degrees_out, in.deg = degree_sequence_v1$degrees_in, method = "simple")
+df8 <- network_function(df8)
+
+df9 <- degree.sequence.game(out.deg = degree_sequence_v1$degrees_out, in.deg = degree_sequence_v1$degrees_in, method = "simple")
+df9 <- network_function(df9)
+
+df10 <- degree.sequence.game(out.deg = degree_sequence_v1$degrees_out, in.deg = degree_sequence_v1$degrees_in, method = "simple")
+df10 <- network_function(df10)
+
+df_all <- rbind(df1,df2,df3,df4,df5,df6,df7,df8,df9,df10)
+
+```
+
+```{r}
+
+# investigating traits and their deviation
+
+like1follow1v1_nodes <- read.csv("~/sockult_exam/like1follow1v1_nodes.csv")
+like1follow1v2_nodes <- read.csv("~/sockult_exam/like1follow1v2_nodes.csv")
+like0follow1v1_nodes <- read.csv("~/sockult_exam/like0follow1v2_nodes.csv")
+like0follow1v2_nodes <- read.csv("~/sockult_exam/like0follow1v2_nodes.csv")
+like1follow0v1_nodes <- read.csv("~/sockult_exam/like1follow0v2_nodes.csv")
+like1follow0v2_nodes <- read.csv("~/sockult_exam/like1follow0v2_nodes.csv")
+
+
+like1follow0.1v1_nodes <- read.csv("~/sockult_exam/nodes_like1follow0.1v1.csv")
+like1follow0.1v2_nodes <- read.csv("~/sockult_exam/nodes_like1follow0.1v2.csv")
+
+traits_111 <- data.frame("trait_1" = like1follow1v1_nodes$TRAIT1, "trait_2" = like1follow1v1_nodes$TRAIT2, "condition" = "l1f1")
+traits_112 <- data.frame("trait_1" = like1follow1v2_nodes$TRAIT1, "trait_2" = like1follow1v2_nodes$TRAIT2, "condition" = "l1f1")
+traits_011 <- data.frame("trait_1" = like0follow1v1_nodes$TRAIT1, "trait_2" = like0follow1v1_nodes$TRAIT2, "condition" = "l0f1")
+traits_012 <- data.frame("trait_1" = like0follow1v2_nodes$TRAIT1, "trait_2" = like0follow1v2_nodes$TRAIT2, "condition" = "l0f1")
+traits_101 <- data.frame("trait_1" = like1follow0v1_nodes$TRAIT1, "trait_2" = like1follow0v1_nodes$TRAIT2, "condition" = "l1f0")
+traits_102 <- data.frame("trait_1" = like1follow0v2_nodes$TRAIT1, "trait_2" = like1follow0v2_nodes$TRAIT2, "condition" = "l1f0")
+
+trait_df <- rbind(traits_111, traits_112, traits_011, traits_012, traits_101, traits_102)
+
+ggplot() + 
+  geom_density(data = filter(trait_df, condition == "l1f1" | condition == "l1f0"), aes(x=trait_1, group=condition, fill=condition),alpha=0.5, adjust=2) + 
+  xlab("Trait 1") +
+  ylab("Density") +
+  theme_linedraw() +
+  xlim(0, 100) +
+  ggtitle("Trait Distribution")
+
+ggplot() + 
+  geom_density(data = filter(trait_df, condition == "l1f1" | condition == "l0f1"), aes(x=trait_1, group=condition, fill=condition),alpha=0.5, adjust=2) + 
+  xlab("Trait 1") +
+  ylab("Density") +
+  theme_linedraw() +
+  xlim(0, 100) +
+  ggtitle("Trait Distribution")
+
+traits_1011 <- data.frame("trait_1" = like1follow0.1v1_nodes$TRAIT1, "trait_2" = like1follow0.1v1_nodes$TRAIT2, "condition" = "l1f0.1")
+traits_1012 <- data.frame("trait_1" = like1follow0.1v2_nodes$TRAIT1, "trait_2" = like1follow0.1v2_nodes$TRAIT2, "condition" = "l1f0.1")
+
+trait_igen <- rbind(traits_111, traits_112, traits_011, traits_012, traits_101, traits_102, traits_1011, traits_1012)
+
+ggplot() + 
+  geom_density(data = filter(trait_igen, condition == "l1f1" | condition == "l1f0" | condition == "l1f0.1"), aes(x=trait_1, group=condition, fill=condition),alpha=0.5, adjust=2) + 
+  xlab("Trait 1") +
+  ylab("Density") +
+  theme_linedraw() +
+  xlim(0, 100) +
+  ggtitle("Trait Distribution")
+
+```
+
+
+```{r}
+
+# degree distributions
+
+deg_like1.0follow1v1 <- data.frame("degrees_in"=degree(like1.0follow1v1_graph, mode = "in"), "version" = 1)
+deg_like1.0follow1v2 <- data.frame("degrees_in"=degree(like1.0follow1v2_graph, mode = "in"), "version" = 2)
+
+deg_like1.0follow1 <- rbind(deg_like1.0follow1v1, deg_like1.0follow1v2)
+
+deg_like1.0follow1$version <- as.factor(deg_like1.0follow1$version)
+ggplot(deg_like1.0follow1, aes(x=degrees_in, color = version)) + 
+  geom_density() +
+  theme_linedraw() +
+  xlab("Degrees In") +
+  ylab("Density") +
+  ggtitle("Degree Distribution")
+
+```
+

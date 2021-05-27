@@ -1,0 +1,147 @@
+---
+title: "twiteralbo"
+author: "Morten Gade"
+date: "9/5/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+
+# load packages
+pacman::p_load(tidyverse,
+               here,
+               network,
+               igraph,
+               ggraph,
+               tidygraph,
+               patchwork,
+               ggplot2)
+
+# make some functions
+
+igraph_function <- function(df) {
+  
+  ID = data.frame(ID=unique(c(df$from, df$to)))
+  
+  igraph <-graph_from_data_frame(d = df,
+                        vertices = ID,
+                        directed = TRUE)
+  
+  return(igraph)
+  
+}
+
+network_function <- function(graph) {
+  name = deparse(substitute(graph))
+  avg_degree = mean(igraph::degree(graph, mode = "in"))
+  q1 = quantile(igraph::degree(graph, mode = "in"))[2]
+  q2 = quantile(igraph::degree(graph, mode = "in"))[3]
+  q3 = quantile(igraph::degree(graph, mode = "in"))[4]
+  apl = mean_distance(graph, directed = TRUE, unconnected = TRUE)
+  transitivity = transitivity(graph, type = "average")
+  reciprocity = reciprocity(graph, ignore.loops = TRUE, mode = "default")
+  
+  return(data.frame(avg_degree, q1, q2, q3, apl, transitivity, reciprocity, name))
+  
+}
+
+
+```
+
+
+```{r cars}
+
+
+
+twiteralbo <- read.csv("~/sockult_exam/twecoll/edges_twiteralbo.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+riccardo <- read.csv("~/sockult_exam/twecoll/edges_riccardo.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+BravoPR <- read.csv("~/sockult_exam/twecoll/edges_BravoPR.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+AaronDaviet <- read.csv("~/sockult_exam/twecoll/edges_AaronDaviet.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+jmylifc <- read.csv("~/sockult_exam/twecoll/edges_jmylifc.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+Saramasri <- read.csv("~/sockult_exam/twecoll/edges_Saramasri.csv") %>% select(c("from" = Source, "to" = Target, "type" = Type, "id" = Id, "weight" = Weight))
+
+twiteralbo_graph <- igraph_function(twiteralbo)
+riccardo_graph <- igraph_function(riccardo)
+BravoPR_graph <- igraph_function(BravoPR)
+AaronDaviet_graph <- igraph_function(AaronDaviet)
+jmylifc_graph <- igraph_function(jmylifc)
+Saramasri_graph <- igraph_function(Saramasri)
+
+twiteralbo_stats <- network_function(twiteralbo_graph)
+riccardo_stats <- network_function(riccardo_graph)
+BravoPR_stats <- network_function(BravoPR_graph)
+AaronDaviet_stats <- network_function(AaronDaviet_graph)
+jmylifc_stats <- network_function(jmylifc_graph)
+Saramasri_stats <- network_function(Saramasri_graph)
+
+twecoll_summary <- rbind(twiteralbo_stats, riccardo_stats, BravoPR_stats, AaronDaviet_stats, jmylifc_stats, Saramasri_stats)
+
+
+
+```
+
+
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+
+# eigen centrality - influence of a node in the network (connections to nodes with high influence weighted higher)
+mean(eigen_centrality(twiteralbo_igraph)$vector, directed = T)
+mean(eigen_centrality(riccardo_graph)$vector, directed = T)
+mean(eigen_centrality(BravoPR_graph)$vector, directed = T)
+mean(eigen_centrality(AaronDaviet_graph)$vector, directed = T)
+mean(eigen_centrality(jmylifc_graph)$vector, directed = T)
+mean(eigen_centrality(Saramasri_graph)$vector, directed = T)
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+
+# degree distributions
+
+deg_twiteralbo <- data.frame("degrees_in"=degree(twiteralbo_igraph, mode = "in"), "network" = 2)
+deg_riccardo <- data.frame("degrees_in"=degree(riccardo_igraph, mode = "in"), "network" = 1)
+deg_BravoPR <- data.frame("degrees_in"=degree(BravoPR_igraph, mode = "in"), "network" = 3)
+deg_AaronDaviet <- data.frame("degrees_in"=degree(AaronDaviet_igraph, mode = "in"), "network" = 4)
+deg_jmylifc <- data.frame("degrees_in"=degree(jmylifc_igraph, mode = "in"), "network" = 5)
+deg_Saramasri <- data.frame("degrees_in"=degree(Saramasri_igraph, mode = "in"), "network" = 6)
+
+
+deg_all <- rbind(deg_twiteralbo, deg_riccardo, deg_BravoPR, deg_AaronDaviet, deg_jmylifc, deg_Saramasri)
+deg_all$mode <- "individual"
+
+deg_all2 <- data.frame("degrees_in" = deg_all$degrees_in, "network" = "aggregated", "mode" = "aggregated")
+
+deg_all_allllll <- rbind(deg_all, deg_all2)
+
+deg_all$network <- as.factor(deg_all$network)
+
+ggplot(deg_all, aes(x=degrees_in, color = network)) + 
+  geom_density(aes(group = network)) +
+  theme_linedraw() +
+  xlab("Degrees") +
+  ylab("Density") +
+  ggtitle("Degree Distribution")
+
+ggplot(deg_all_allllll, aes(x=degrees_in, color = network)) + 
+  geom_density(aes(group = network)) +
+  theme_linedraw() +
+  xlab("Degrees") +
+  ylab("Density") +
+  ggtitle("Degree Distribution") +
+  facet_wrap( ~ mode)
+
+```
